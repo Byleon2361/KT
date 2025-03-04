@@ -1,5 +1,4 @@
-#ifndef COOLLEXER_H
-#define COOLLEXER_H
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -8,20 +7,15 @@
 #include <FlexLexer.h>
 
 class CoolLexer : public yyFlexLexer {
+ private:
+  std::ostream& out;
+  void Error(const char* msg) const;
+  void EscapeStrLexeme() const;
+  int lineno = 1;
+  int comment_level = 0;
+
  public:
   CoolLexer(std::istream& arg_yyin, std::ostream& arg_yyout)
-      : yyFlexLexer{arg_yyin, arg_yyout},
-        out{arg_yyout},
-        lineno{0},
-        comment_level{0} {}
+      : yyFlexLexer{arg_yyin, arg_yyout}, out{arg_yyout} {}
   virtual int yylex();
-
- private:
-  void Error(const char* msg) const;
-
-  std::ostream& out;
-  int lineno;
-  int comment_level;
 };
-
-#endif

@@ -12,63 +12,119 @@
 
 %}
 
-DIGIT       [0-9]
-LETTER      [a-zA-Z]
-ID          {LETTER}({LETTER}|{DIGIT}|_)*
-INT         {DIGIT}+
-STRING      \"([^\"\\]|\\.)*\"
-WHITESPACE  [ \t\n\r]+
-COMMENT     --.*\n
+white_space               [ \t\f\b\r]*
+digit                     [0-9]
+alpha                     [A-Za-z_]
+alpha_num                 ({alpha}|{digit})
+
+%x COMMENT
+%x STRING
+
+%option warn nodefault batch noyywrap c++
+%option yylineno
+%option yyclass="CoolLexer"
 
 %%
 
-"class"     { return TOKEN_CLASS; }
-"inherits"  { return TOKEN_INHERITS; }
-"if"        { return TOKEN_IF; }
-"then"      { return TOKEN_THEN; }
-"else"      { return TOKEN_ELSE; }
-"fi"        { return TOKEN_FI; }
-"while"     { return TOKEN_WHILE; }
-"loop"      { return TOKEN_LOOP; }
-"pool"      { return TOKEN_POOL; }
-"let"       { return TOKEN_LET; }
-"in"        { return TOKEN_IN; }
-"case"      { return TOKEN_CASE; }
-"of"        { return TOKEN_OF; }
-"esac"      { return TOKEN_ESAC; }
-"new"       { return TOKEN_NEW; }
-"isvoid"    { return TOKEN_ISVOID; }
-"not"       { return TOKEN_NOT; }
-"true"      { return TOKEN_TRUE; }
-"false"     { return TOKEN_FALSE; }
-{ID}        { return TOKEN_ID; }
-{INT}       { return TOKEN_INT; }
-{STRING}    { return TOKEN_STRING; }
-"+"         { return TOKEN_PLUS; }
-"-"         { return TOKEN_MINUS; }
-"*"         { return TOKEN_MULT; }
-"/"         { return TOKEN_DIV; }
-"="         { return TOKEN_ASSIGN; }
-"<"         { return TOKEN_LT; }
-"<="        { return TOKEN_LE; }
-"~"         { return TOKEN_TILDE; }
-"<-"        { return TOKEN_ARROW; }
-";"         { return TOKEN_SEMICOLON; }
-":"         { return TOKEN_COLON; }
-","         { return TOKEN_COMMA; }
-"."         { return TOKEN_DOT; }
-"("         { return TOKEN_LPAREN; }
-")"         { return TOKEN_RPAREN; }
-"{"         { return TOKEN_LBRACE; }
-"}"         { return TOKEN_RBRACE; }
-{WHITESPACE} { /* Игнорировать пробелы */ }
-{COMMENT}   { /* Игнорировать комментарии */ }
-<<EOF>>     { return TOKEN_EOF; }
+--.*                      { }
+"*)"                      { Error("Unmatched comment ending"); BEGIN(INITIAL); return -1; }
+"(*"                      { BEGIN(COMMENT); comment_level = 0; }
+<COMMENT>"(*"             { comment_level++; }
+<COMMENT><<EOF>>          { Error("EOF in comment"); BEGIN(INITIAL); return -1; }
+<COMMENT>\n               { lineno++; }
+<COMMENT>.                { }
+<COMMENT>"*)"             {
+                            if (comment_level == 0) {
+                                BEGIN(INITIAL);
+                            }
+                            comment_level--;
+                          }
+
+"\""                      { BEGIN(STRING); yymore(); }
+<STRING>\n                { Error("Wrong newline in string"); BEGIN(INITIAL); lineno++; return -1; }
+<STRING><<EOF>>           { Error("EOF in string"); BEGIN(INITIAL); return -1; }
+<STRING>\0                { Error("Can't use \\0 in strings"); BEGIN(INITIAL); yymore(); return -1; }
+<STRING>[^\\\"\n]*        { yymore(); }
+<STRING>\\[^\n]           { yymore(); }
+<STRING>\\\n              { lineno++; yymore(); }
+<STRING>"\""              { BEGIN(INITIAL); EscapeStrLexeme(); return TOKEN_STRING; }
+
+true                 return TOKEN_TRUE;
+false                return TOKEN_FALSE;
+class                return TOKEN_CLASS;
+else                 return TOKEN_ELSE;
+fi                   return TOKEN_FI;
+if                   return TOKEN_IF;
+in                   return TOKEN_IN;
+inherits             return TOKEN_INHERITS;
+let                  return TOKEN_LET;
+loop                 return TOKEN_LOOP;
+pool                 return TOKEN_POOL;
+then                 return TOKEN_THEN;
+while                return TOKEN_WHILE;
+case                 return TOKEN_CASE;
+esac                 return TOKEN_ESAC;
+new                  return TOKEN_NEW;
+isvoid               return TOKEN_ISVOID;
+of                   return TOKEN_OF;
+not                  return TOKEN_NOT;
+
+"<="                      return TOKEN_LEQ;
+"<-"                      return TOKEN_ASSIGN;
+"=>"                      return TOKEN_ARROW;
+"<"                       return TOKEN_LESS;
+"="                       return TOKEN_EQUAL;
+"@"                       return TOKEN_AT;
+"*"                       return TOKEN_MUL;
+"/"                       return TOKEN_DIVIDE;
+"+"                       return TOKEN_PLUS;
+"-"                       return TOKEN_MINUS;
+","                       return TOKEN_COMMA;
+"."                       return TOKEN_DOT;
+";"                       return TOKEN_SEMICOLON;
+":"                       return TOKEN_COLON;
+"~"                       return TOKEN_LOGICAL_NOT;
+"("                       return TOKEN_OPEN_PAREN;
+")"                       return TOKEN_CLOSE_PAREN;
+"["                       return TOKEN_OPEN_BRACKET;
+"]"                       return TOKEN_CLOSE_BRACKET;
+"{"                       return TOKEN_OPEN_BRACE;
+"}"                       return TOKEN_CLOSE_BRACE;
+
+{digit}+                  return TOKEN_CONST_INT;
+
+[a-z]{alpha_num}*         return TOKEN_IDENTIFIER_OBJECT;
+[A-Z]{alpha_num}*         return TOKEN_IDENTIFIER_TYPE;
+_{alpha_num}*             return TOKEN_IDENTIFIER_OTHER;
+
+{white_space}             { }
+\n                        lineno++;
+.                         { BEGIN(INITIAL); Error("Unrecognized character"); return -1; }
 
 %%
 
-void CoolLexer::Error(const char* msg) const
-{
+void CoolLexer::Error(const char* msg) const {
     std::cerr << "Lexer error (line " << lineno << "): " << msg << ": lexeme '" << YYText() << "'\n";
-    std::exit(YY_EXIT_FAILURE);
+}
+
+void CoolLexer::EscapeStrLexeme() const {
+    const char *input = yytext;
+    char *output = yytext;
+    input++; // Skip opening '\"'
+    while (*(input + 1) /* Skip closing '\"' */ ) {
+        if (*input == '\\') {
+            input++; // Skip '\\'
+            switch (*input) {
+                case 'n': *output++ = '\n'; break;
+                case 't': *output++ = '\t'; break;
+                case 'f': *output++ = '\f'; break;
+                case 'b': *output++ = '\b'; break;
+                default: *output++ = *input;
+            }
+        } else {
+            *output++ = *input;
+        }
+        input++;
+    }
+    *output = '\0'; // Null-terminate the output string
 }
