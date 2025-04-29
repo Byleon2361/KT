@@ -40,6 +40,7 @@ int main(int argc, char **argv) {
   lex_verbose = 0;
 
   for (int i = 1; i < argc; i++) {
+    curr_filename = argv[i];
     token_file = std::fopen(argv[i], "r");
     if (token_file == NULL) {
       std::cerr << "Error: can not open file " << argv[i] << std::endl;
