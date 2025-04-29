@@ -357,14 +357,14 @@ static const flex_int16_t yy_accept[125] =
        56,   56,   56,   56,   56,   56,   56,   56,   56,   56,
        53,   54,   48,    6,    5,    6,    6,   11,    9,   14,
        62,   10,   59,    3,    2,    1,   55,   35,   34,   36,
-       57,   58,   56,   56,   56,   56,   56,   56,   19,   20,
-       21,   56,   56,   56,   56,   56,   32,   56,   56,   56,
+       57,   58,   56,   56,   56,   56,   56,   56,   23,   22,
+       19,   56,   56,   56,   56,   56,   32,   56,   56,   56,
        56,    4,    7,   11,   12,   13,    1,   56,   56,   56,
-       56,   56,   56,   56,   23,   56,   30,   33,   56,   56,
+       56,   56,   56,   56,   21,   56,   30,   33,   56,   56,
 
        56,   56,   28,   56,   18,   29,   56,   56,   56,   24,
        25,   26,   15,   56,   17,   16,   56,   56,   27,   56,
-       31,   56,   22,    0
+       31,   56,   20,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -843,27 +843,27 @@ return TOKEN_ELSE;
 case 19:
 YY_RULE_SETUP
 #line 56 "./CoolLexer.flex"
-return TOKEN_FI;
+return TOKEN_IN;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 57 "./CoolLexer.flex"
-return TOKEN_IF;
+return TOKEN_INHERITS;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 58 "./CoolLexer.flex"
-return TOKEN_IN;
+return TOKEN_LET;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 59 "./CoolLexer.flex"
-return TOKEN_INHERITS;
+return TOKEN_IF;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 60 "./CoolLexer.flex"
-return TOKEN_LET;
+return TOKEN_FI;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP

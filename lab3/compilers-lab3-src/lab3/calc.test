@@ -1,0 +1,103 @@
+#!/bin/sh
+
+PROG="./calc"
+TESTFILE="./input"
+
+run()
+{
+    ${PROG} < ${TESTFILE} >res 2>res-err
+    if [ "$?" -eq "$1" ]; then
+        TEST=`cat $TESTFILE`
+        echo "$2" > res-exp
+        if diff res res-exp >/dev/null 2>&1; then
+            echo "${TEST} -- passed"
+        else
+            echo "${TEST} -- FAILED (output mismatch)"
+            echo "Expected: $2"
+            echo "Got: $(cat res)"
+        fi
+    else
+        echo "${TEST} -- failed (exit status: expected $1, got $?)"
+    fi
+    rm res res-err res-exp $TESTFILE
+}
+
+cat >input <<EOF
+2 + 2
+EOF
+run 0 4
+
+cat >input <<EOF
+10 - 3
+EOF
+run 0 7
+
+cat >input <<EOF
+3 * 4
+EOF
+run 0 12
+
+cat >input <<EOF
+15 / 3
+EOF
+run 0 5
+
+cat >input <<EOF
+3 + 4 * 5
+EOF
+run 0 23
+
+cat >input <<EOF
+(3 + 4) * 5
+EOF
+run 0 35
+
+cat >input <<EOF
+-5 + 10
+EOF
+run 0 5
+
+cat >input <<EOF
+10 + -5
+EOF
+run 0 5
+
+cat >input <<EOF
+0.1 + 0.2
+EOF
+run 0 0.3
+
+cat >input <<EOF
+1.5 * 4
+EOF
+run 0 6
+
+cat >input <<EOF
+2 ^ 3
+EOF
+run 0 8
+
+cat >input <<EOF
+2 ^ 3 ^ 2
+EOF
+run 0 512
+
+cat >input <<EOF
+3 + 4 * (5 + 6)
+EOF
+run 0 47
+
+cat >input <<EOF
+(1 + 2) * (3 + 4) / (5 - 2)
+EOF
+run 0 7
+
+cat >input <<EOF
+-2 ^ 2
+EOF
+run 0 4
+
+cat >input <<EOF
+-2
+EOF
+run 0 -2

@@ -53,6 +53,30 @@ class Main inherits IO {
             else
                 out_string("obj is not void\n")
             fi;
+
+            (* abc (* *) -- dsf
+            -- comm 
+            *)
+
+            (*
+            * Example app.
+            *
+            *)
+            0x123
+
+            -- This is a class
+
+            "String (* hello *)"
+
+            "Str"
+
+            "Multiline string\
+            Hello"
+
+            "Hello\n"
+
+            "\
+            zxc"
         }
     };
 };

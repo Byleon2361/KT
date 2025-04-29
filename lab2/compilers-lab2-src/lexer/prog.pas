@@ -3,7 +3,9 @@ var
   a: array [1..Sz] of integer;
   N: integer;
   i: integer;
+  myString: String;
 begin
+  myString := 'Привет, мир!';
   readln(N);
   for i:=1 to N do
     read(a[i]);

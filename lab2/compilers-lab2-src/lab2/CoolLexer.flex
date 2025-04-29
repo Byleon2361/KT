@@ -53,11 +53,11 @@ true                 return TOKEN_TRUE;
 false                return TOKEN_FALSE;
 class                return TOKEN_CLASS;
 else                 return TOKEN_ELSE;
-fi                   return TOKEN_FI;
-if                   return TOKEN_IF;
 in                   return TOKEN_IN;
 inherits             return TOKEN_INHERITS;
 let                  return TOKEN_LET;
+if                   return TOKEN_IF;
+fi                   return TOKEN_FI;
 loop                 return TOKEN_LOOP;
 pool                 return TOKEN_POOL;
 then                 return TOKEN_THEN;
@@ -110,10 +110,10 @@ void CoolLexer::Error(const char* msg) const {
 void CoolLexer::EscapeStrLexeme() const {
     const char *input = yytext;
     char *output = yytext;
-    input++; // Skip opening '\"'
-    while (*(input + 1) /* Skip closing '\"' */ ) {
+    input++;
+    while (*(input + 1)) {
         if (*input == '\\') {
-            input++; // Skip '\\'
+            input++;
             switch (*input) {
                 case 'n': *output++ = '\n'; break;
                 case 't': *output++ = '\t'; break;
@@ -126,5 +126,5 @@ void CoolLexer::EscapeStrLexeme() const {
         }
         input++;
     }
-    *output = '\0'; // Null-terminate the output string
+    *output = '\0';
 }
